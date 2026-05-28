@@ -35,6 +35,7 @@ exports.registerPlayer = async (req, res) => {
       phone,
       dob,
       ageCategory,
+      profileLink,
       role,
       paymentMethod,
       utrNumber,
@@ -134,7 +135,7 @@ if (age > 40) {
       phone,
       dob,
       ageCategory,
-      
+      profileLink,
       role,
       paymentMethod,
       utrNumber,
@@ -233,7 +234,7 @@ exports.updatePlayer = async (req, res) => {
       phone,
       dob,
       ageCategory,
-      
+      profileLink,
       role,
       paymentMethod,
       utrNumber,
@@ -285,6 +286,8 @@ exports.updatePlayer = async (req, res) => {
     player.dob = dob || player.dob;
     player.ageCategory =
       ageCategory || player.ageCategory;
+    player.profileLink =
+      profileLink || player.profileLink;
     player.role = role || player.role;
     player.paymentMethod =
       paymentMethod || player.paymentMethod;

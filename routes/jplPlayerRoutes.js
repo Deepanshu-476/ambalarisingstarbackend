@@ -55,7 +55,10 @@ router.get("/:id", getSinglePlayer);
 router.put(
   "/update/:id",
   upload.fields([
-    
+    {
+      name: "passportPhoto",
+      maxCount: 1,
+    },
     {
       name: "aadharImage",
       maxCount: 1,

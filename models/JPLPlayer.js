@@ -29,6 +29,11 @@ const jplPlayerSchema = new mongoose.Schema(
       required: true,
     },
 
+    profileLink: {
+      type: String,
+      required: true,
+    },
+
     role: {
       type: String,
       required: true,
