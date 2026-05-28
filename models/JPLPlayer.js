@@ -29,11 +29,6 @@ const jplPlayerSchema = new mongoose.Schema(
       required: true,
     },
 
-    profileLink: {
-      type: String,
-      required: true,
-    },
-
     role: {
       type: String,
       required: true,
@@ -91,5 +86,6 @@ const jplPlayerSchema = new mongoose.Schema(
     
 module.exports = mongoose.model(
   "JPLPlayer",
-  jplPlayerSchema
+  jplPlayerSchema,
+  "jplplayers"
 );
