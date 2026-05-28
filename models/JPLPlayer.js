@@ -56,11 +56,6 @@ const jplPlayerSchema = new mongoose.Schema(
       unique: true,
     },
 
-    passportPhoto: {
-      type: String,
-      required: true,
-    },
-
     aadharImage: {
       type: String,
       required: true,

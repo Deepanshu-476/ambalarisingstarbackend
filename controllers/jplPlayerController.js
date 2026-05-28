@@ -45,6 +45,48 @@ exports.registerPlayer = async (req, res) => {
       verificationStatus,
     } = req.body;
 
+    const today = new Date();
+
+const birthDate = new Date(dob);
+
+let age =
+  today.getFullYear() -
+  birthDate.getFullYear();
+
+const monthDiff =
+  today.getMonth() -
+  birthDate.getMonth();
+
+if (
+  monthDiff < 0 ||
+  (
+    monthDiff === 0 &&
+    today.getDate() < birthDate.getDate()
+  )
+) {
+  age--;
+}
+
+if (age < 10) {
+
+  return res.status(400).json({
+    success: false,
+    message:
+      "Player must be at least 10 years old"
+  });
+
+}
+
+if (age > 40) {
+
+  return res.status(400).json({
+    success: false,
+    message:
+      "Player age cannot exceed 40 years"
+  });
+
+}
+
     const existingEmail = await JPLPlayer.findOne({ email });
 
     if (existingEmail) {
@@ -72,8 +114,14 @@ exports.registerPlayer = async (req, res) => {
       });
     }
 
-    const passportPhoto =
-      req.files?.passportPhoto?.[0]?.filename || "";
+      if (!req.files?.aadharImage) {
+
+        return res.status(400).json({
+          success: false,
+          message: "Aadhar image is required"
+        });
+
+      }
 
     const aadharImage =
       req.files?.aadharImage?.[0]?.filename || "";
@@ -92,7 +140,6 @@ exports.registerPlayer = async (req, res) => {
       paymentMethod,
       utrNumber,
       aadharNumber,
-      passportPhoto,
       aadharImage,
       paymentProof,
       tournament,
@@ -115,6 +162,9 @@ exports.registerPlayer = async (req, res) => {
     });
   }
 };
+
+
+
 
 /* =========================
    GET ALL PLAYERS
@@ -194,22 +244,7 @@ exports.updatePlayer = async (req, res) => {
     } = req.body;
 
     // IMAGE UPDATE
-    if (req.files?.passportPhoto?.[0]) {
-      if (player.passportPhoto) {
-        const oldPath = path.join(
-          __dirname,
-          "../uploads/captains",
-          player.passportPhoto
-        );
-
-        if (fs.existsSync(oldPath)) {
-          fs.unlinkSync(oldPath);
-        }
-      }
-
-      player.passportPhoto =
-        req.files.passportPhoto[0].filename;
-    }
+    
 
     if (req.files?.aadharImage?.[0]) {
       if (player.aadharImage) {
@@ -321,7 +356,7 @@ exports.deletePlayer = async (req, res) => {
 
     // DELETE IMAGES
     const files = [
-      player.passportPhoto,
+      
       player.aadharImage,
       player.paymentProof,
     ];

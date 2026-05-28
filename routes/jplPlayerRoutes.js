@@ -28,10 +28,6 @@ router.post(
   "/register",
   upload.fields([
     {
-      name: "passportPhoto",
-      maxCount: 1,
-    },
-    {
       name: "aadharImage",
       maxCount: 1,
     },
