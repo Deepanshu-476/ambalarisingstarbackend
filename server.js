@@ -16,6 +16,7 @@ app.use("/api/team", require("./routes/teamRoutes"));
 app.use('/api/profile', require('./routes/profileRoutes'));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use("/api/player",require("./routes/UserPlayers"))
+app.use("/api/jpl-player", require("./routes/jplPlayerRoutes"));
 
 app.use("/api/admin/slots", require("./routes/adminSlot.routes"));
 app.use("/api/slots", require("./routes/slot.routes"));
