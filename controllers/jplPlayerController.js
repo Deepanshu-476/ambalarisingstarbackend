@@ -12,7 +12,7 @@ exports.getPaymentDetails = async (req, res) => {
   try {
     return res.status(200).json({
       success: true,
-      registrationFee: 500,
+     registrationFee: 1200,
       upiId: "9896529577@ptsbi",
       qrCodeUrl: null,
     });
@@ -129,23 +129,24 @@ if (age > 40) {
     const paymentProof =
       req.files?.paymentProof?.[0]?.filename || "";
 
-    const player = await JPLPlayer.create({
-      name,
-      email,
-      phone,
-      dob,
-      ageCategory,
-      profileLink,
-      role,
-      paymentMethod,
-      utrNumber,
-      aadharNumber,
-      aadharImage,
-      paymentProof,
-      tournament,
-      paymentStatus,
-      verificationStatus,
-    });
+   const player = await JPLPlayer.create({
+  name,
+  email,
+  phone,
+  dob,
+  ageCategory,
+  profileLink,
+  role,
+  paymentMethod,
+  utrNumber,
+  aadharNumber,
+  aadharImage,
+  paymentProof,
+  registrationFee: 1200,
+  tournament,
+  paymentStatus,
+  verificationStatus,
+});
 
     return res.status(201).json({
       success: true,
@@ -297,11 +298,11 @@ exports.updatePlayer = async (req, res) => {
       aadharNumber || player.aadharNumber;
     player.paymentStatus =
       paymentStatus || player.paymentStatus;
-    player.verificationStatus =
-      verificationStatus ||
-      player.verificationStatus;
+   player.verificationStatus =
+    verificationStatus ||
+    player.verificationStatus;
 
-    await player.save();
+await player.save({ validateBeforeSave: false });
 
 console.log("PLAYER UPDATED SUCCESS");
 

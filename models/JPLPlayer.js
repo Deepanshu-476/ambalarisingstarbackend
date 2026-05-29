@@ -66,6 +66,11 @@ const jplPlayerSchema = new mongoose.Schema(
       default: "",
     },
 
+    registrationFee: {
+      type: Number,
+      default: 1200,
+    },
+
     tournament: {
       type: String,
       default:
