@@ -11,6 +11,7 @@ const {
   getSinglePlayer,
   updatePlayer,
   deletePlayer,
+  exportPlayers,
 } = require("../controllers/jplPlayerController");
 
 /* =========================
@@ -43,6 +44,11 @@ router.post(
    GET ALL PLAYERS
 ========================= */
 router.get("/all", getAllPlayers);
+
+/* =========================
+   EXPORT PLAYERS
+========================= */
+router.get("/export", exportPlayers);
 
 /* =========================
    GET SINGLE PLAYER
