@@ -15,6 +15,7 @@ const {
 } = require("../controllers/adminSlot.controller");
 
 /* CRUD */
+router.post("/", createSlot);
 router.post("/create", createSlot);
 router.get("/", getAllSlots);
 router.get("/:id", getSlotById);
@@ -25,5 +26,6 @@ router.patch("/toggle/:id", toggleSlotStatus);
 /* ADVANCED SLOT CONTROL */
 router.post("/generate-future", generateFutureSlots); // fixed time for future dates
 router.post("/disable-date", disableSlotsByDate);     // disable full date
+router.post("/disable-by-date", disableSlotsByDate);
 
 module.exports = router;

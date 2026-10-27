@@ -1,37 +1,29 @@
 // controllers/adminSlot.controller.js
 const Slot = require("../models/Slot");
 
+const startOfDay = (value) => {
+  const date = new Date(value);
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+
 /* ================= CREATE SLOT ================= */
 exports.createSlot = async (req, res) => {
   try {
     const { slotDate, startTime, endTime, capacity } = req.body;
 
-    const date = new Date(slotDate);
-    date.setHours(0, 0, 0, 0);
+    const date = startOfDay(slotDate);
+    const result = await Slot.findOneAndUpdate(
+      { slotDate: date, startTime, endTime },
+      { $setOnInsert: { slotDate: date, startTime, endTime, capacity: capacity || 2 } },
+      { new: true, upsert: true, setDefaultsOnInsert: true, rawResult: true }
+    );
+    const slot = result.value || result;
+    const created = Boolean(result.lastErrorObject?.upserted);
 
-    const exists = await Slot.findOne({
-      slotDate: date,
-      startTime,
-      endTime,
-    });
-
-    if (exists) {
-      return res.status(400).json({
-        success: false,
-        message: "Slot already exists for this date & time",
-      });
-    }
-
-    const slot = await Slot.create({
-      slotDate: date,
-      startTime,
-      endTime,
-      capacity: capacity || 2,
-    });
-
-    res.status(201).json({
+    res.status(created ? 201 : 200).json({
       success: true,
-      message: "Slot created successfully",
+      message: created ? "Slot created successfully" : "Slot already exists for this date & time",
       data: slot,
     });
   } catch (error) {
@@ -43,43 +35,50 @@ exports.createSlot = async (req, res) => {
 exports.generateFutureSlots = async (req, res) => {
   try {
     const { startDate, endDate, timeSlots, capacity = 2 } = req.body;
+    const currentDate = startOfDay(startDate);
+    const lastDate = startOfDay(endDate);
 
-    let currentDate = new Date(startDate);
-    currentDate.setHours(0, 0, 0, 0);
+    if (!startDate || !endDate || currentDate > lastDate || !Array.isArray(timeSlots) || timeSlots.length === 0) {
+      return res.status(400).json({ success: false, message: "Provide a valid date range and at least one time slot" });
+    }
 
-    const lastDate = new Date(endDate);
-    lastDate.setHours(0, 0, 0, 0);
-
-    const slotsToInsert = [];
+    const operationsByKey = new Map();
 
     while (currentDate <= lastDate) {
       for (const t of timeSlots) {
-        const exists = await Slot.findOne({
-          slotDate: currentDate,
-          startTime: t.startTime,
-          endTime: t.endTime,
-        });
-
-        if (!exists) {
-          slotsToInsert.push({
-            slotDate: new Date(currentDate),
-            startTime: t.startTime,
-            endTime: t.endTime,
-            capacity,
-          });
+        if (!t?.startTime || !t?.endTime || t.startTime >= t.endTime) {
+          return res.status(400).json({ success: false, message: "Each slot needs a valid start and end time" });
         }
+
+        const slotDate = new Date(currentDate);
+        const key = `${slotDate.toISOString()}-${t.startTime}-${t.endTime}`;
+        operationsByKey.set(key, {
+          updateOne: {
+            filter: { slotDate, startTime: t.startTime, endTime: t.endTime },
+            update: { $setOnInsert: { slotDate, startTime: t.startTime, endTime: t.endTime, capacity } },
+            upsert: true,
+          },
+        });
       }
       currentDate.setDate(currentDate.getDate() + 1);
     }
 
-    if (slotsToInsert.length) {
-      await Slot.insertMany(slotsToInsert);
+    const operations = [...operationsByKey.values()];
+    let created = 0;
+    try {
+      if (operations.length) {
+        const result = await Slot.bulkWrite(operations, { ordered: false });
+        created = result.upsertedCount || 0;
+      }
+    } catch (error) {
+      if (error.code !== 11000) throw error;
     }
 
     res.json({
       success: true,
-      message: "Future slots generated successfully",
-      totalSlots: slotsToInsert.length,
+      message: created ? "Future slots generated successfully" : "All requested slots already exist",
+      totalSlots: created,
+      requestedSlots: operations.length,
     });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });

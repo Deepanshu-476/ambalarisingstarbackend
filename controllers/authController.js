@@ -7,19 +7,33 @@ const ADMIN_EMAIL = "admin@gmail.com";
 const ADMIN_PASSWORD = "admin123";
 
 exports.register = async (req, res) => {
-  const { name, email, phoneNo, password } = req.body;
+  try {
+    const { name, email, phoneNo, password } = req.body;
 
-  const hashedPassword = await bcrypt.hash(password, 10);
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: "Email and password are required" });
+    }
 
-  const user = await User.create({
-    name,
-    email,
-    phoneNo,
-    password: hashedPassword,
-    role: "teamCaptain"
-  });
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ success: false, message: "Email is already registered. Please sign in." });
+    }
 
-  res.json({ message: "Team Captain Registered", user });
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const user = await User.create({
+      name,
+      email,
+      phoneNo,
+      password: hashedPassword,
+      role: "teamCaptain"
+    });
+
+    res.status(201).json({ success: true, message: "Team Captain Registered", user });
+  } catch (error) {
+    console.error("❌ Register error:", error);
+    res.status(500).json({ success: false, message: error.message || "Registration failed" });
+  }
 };
 
 exports.login = async (req, res) => {
@@ -57,8 +71,17 @@ exports.login = async (req, res) => {
     ) {
       console.log("✅ ADMIN LOGIN MATCHED FROM .env");
 
+      const adminUser = await User.findOneAndUpdate(
+        { email: process.env.ADMIN_EMAIL },
+        {
+          $set: { name: "Admin", role: "admin" },
+          $setOnInsert: { email: process.env.ADMIN_EMAIL },
+        },
+        { new: true, upsert: true, setDefaultsOnInsert: true }
+      );
+
       const token = jwt.sign(
-        { role: "admin" },
+        { id: adminUser._id.toString(), role: "admin" },
         process.env.JWT_SECRET,
         { expiresIn: "7d" }
       );
@@ -67,8 +90,9 @@ exports.login = async (req, res) => {
         token,
         role: "admin",
         user: {
-          name: "Admin",
-          email: process.env.ADMIN_EMAIL,
+          _id: adminUser._id,
+          name: adminUser.name,
+          email: adminUser.email,
           role: "admin"
         }
       });
